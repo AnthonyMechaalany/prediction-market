@@ -1,0 +1,53 @@
+<%- include('../partials/header') %>
+
+<div class="container page-container">
+  <h1>My Bets</h1>
+
+  <% if (bets.length === 0) { %>
+    <div class="empty-state">You haven't placed any bets yet. <a href="/markets">Browse markets →</a></div>
+  <% } else { %>
+    <% const won = bets.filter(b => b.status==='won'); %>
+    <% const lost = bets.filter(b => b.status==='lost'); %>
+    <% const pending = bets.filter(b => b.status==='pending'); %>
+
+    <div class="stats-grid small">
+      <div class="stat-card accent-green"><div class="stat-val"><%= won.length %></div><div class="stat-label">Won 🎉</div></div>
+      <div class="stat-card accent-red"><div class="stat-val"><%= lost.length %></div><div class="stat-label">Lost 💸</div></div>
+      <div class="stat-card"><div class="stat-val"><%= pending.length %></div><div class="stat-label">Pending ⏳</div></div>
+      <div class="stat-card accent-green"><div class="stat-val">+<%= won.reduce((s,b)=>s+b.payout,0).toLocaleString() %></div><div class="stat-label">Total Won</div></div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr><th>Market</th><th>Category</th><th>Prediction</th><th>Amount</th><th>Status</th><th>Payout</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% bets.forEach(bet => { %>
+        <tr>
+          <td><a href="/markets/<%= bet.market._id %>"><%= bet.market.title.substring(0,50) %>...</a></td>
+          <td><span class="market-cat cat-<%= bet.market.category %>"><%= bet.market.category %></span></td>
+          <td><span class="badge badge-<%= bet.prediction.toLowerCase() %>"><%= bet.prediction %></span></td>
+          <td><%= bet.amount.toLocaleString() %> pts</td>
+          <td><span class="badge badge-<%= bet.status %>"><%= bet.status %></span></td>
+          <td>
+            <% if (bet.status === 'won') { %>
+              <span class="text-green">+<%= bet.payout.toLocaleString() %></span>
+            <% } else if (bet.status === 'lost') { %>
+              <span class="text-red">-<%= bet.amount.toLocaleString() %></span>
+            <% } else { %>—<% } %>
+          </td>
+          <td>
+            <% if (bet.market.status === 'open') { %>
+              <form action="/bets/<%= bet._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Cancel this bet?')">
+                <button class="btn btn-danger btn-xs">Cancel</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

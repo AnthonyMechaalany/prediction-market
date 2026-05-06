@@ -1,0 +1,30 @@
+<%- include('../partials/header') %>
+
+<div class="container page-container">
+  <h1>All Bets <span class="count-badge"><%= bets.length %></span></h1>
+
+  <table class="table">
+    <thead>
+      <tr><th>User</th><th>Market</th><th>Prediction</th><th>Amount</th><th>Status</th><th>Payout</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+      <% bets.forEach(bet => { %>
+      <tr>
+        <td><a href="/users/<%= bet.user._id %>"><%= bet.user.username %></a></td>
+        <td><a href="/markets/<%= bet.market._id %>"><%= bet.market.title.substring(0,40) %>...</a></td>
+        <td><span class="badge badge-<%= bet.prediction.toLowerCase() %>"><%= bet.prediction %></span></td>
+        <td><%= bet.amount.toLocaleString() %> pts</td>
+        <td><span class="badge badge-<%= bet.status %>"><%= bet.status %></span></td>
+        <td>
+          <% if (bet.status === 'won') { %><span class="text-green">+<%= bet.payout.toLocaleString() %></span>
+          <% } else if (bet.status === 'lost') { %><span class="text-red">-<%= bet.amount.toLocaleString() %></span>
+          <% } else { %>—<% } %>
+        </td>
+        <td><%= new Date(bet.createdAt).toLocaleDateString() %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>

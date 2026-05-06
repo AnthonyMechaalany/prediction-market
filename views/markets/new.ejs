@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+
+<div class="container page-container">
+  <div class="back-link"><a href="/markets">← Markets</a></div>
+  <h1>Create New Market</h1>
+
+  <% if (error) { %>
+    <div class="flash flash-error"><%= error %></div>
+  <% } %>
+
+  <form action="/markets" method="POST" class="form-card">
+    <div class="form-group">
+      <label>Title *</label>
+      <input type="text" name="title" placeholder="e.g. Will Team A win the championship?" required minlength="5" maxlength="200" class="input"/>
+    </div>
+    <div class="form-group">
+      <label>Description *</label>
+      <textarea name="description" rows="4" placeholder="Describe the market, resolution criteria, etc." required maxlength="1000" class="input textarea"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category" class="input select">
+          <% ['politics','sports','technology','entertainment','science','economics','other'].forEach(cat => { %>
+            <option value="<%= cat %>"><%= cat.charAt(0).toUpperCase()+cat.slice(1) %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Closes At *</label>
+        <input type="datetime-local" name="closesAt" required class="input"/>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Create Market</button>
+      <a href="/markets" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>

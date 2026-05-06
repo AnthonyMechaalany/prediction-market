@@ -1,0 +1,7 @@
+<% const urlError = new URLSearchParams(locals.query || '').get ? null : null; %>
+<% if (locals.error && error) { %>
+  <div class="flash flash-error"><%= error %></div>
+<% } %>
+<% if (locals.success && success) { %>
+  <div class="flash flash-success"><%= success %></div>
+<% } %>

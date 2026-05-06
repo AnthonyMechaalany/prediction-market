@@ -1,0 +1,88 @@
+<%- include('partials/header') %>
+
+<div class="container page-container">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <span class="role-badge role-<%= currentUser.role %>"><%= currentUser.role %></span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card accent-green">
+      <div class="stat-icon">⬡</div>
+      <div class="stat-val"><%= currentUser.points.toLocaleString() %></div>
+      <div class="stat-label">Your Points</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-val"><%= stats.openMarkets %></div>
+      <div class="stat-label">Open Markets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-val"><%= stats.resolvedMarkets %></div>
+      <div class="stat-label">Resolved</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-val"><%= stats.totalUsers %></div>
+      <div class="stat-label">Users</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-section">
+      <h2>Recent Bets</h2>
+      <% if (recentBets.length === 0) { %>
+        <div class="empty-state">No bets yet. <a href="/markets">Browse markets →</a></div>
+      <% } else { %>
+        <table class="table">
+          <thead><tr><th>Market</th><th>Prediction</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <% recentBets.forEach(bet => { %>
+            <tr>
+              <td><a href="/markets/<%= bet.market._id %>"><%= bet.market.title.substring(0,40) %>...</a></td>
+              <td><span class="badge badge-<%= bet.prediction.toLowerCase() %>"><%= bet.prediction %></span></td>
+              <td><%= bet.amount.toLocaleString() %> pts</td>
+              <td><span class="badge badge-<%= bet.status %>"><%= bet.status %></span></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+      <a href="/bets" class="link-more">View all bets →</a>
+    </div>
+
+    <% if (adminStats) { %>
+    <div class="dash-section">
+      <h2>Admin Panel</h2>
+      <div class="admin-actions">
+        <a href="/markets/new" class="btn btn-primary btn-sm">+ New Market</a>
+        <a href="/users" class="btn btn-ghost btn-sm">Manage Users</a>
+        <a href="/bets/all" class="btn btn-ghost btn-sm">All Bets</a>
+      </div>
+      <p class="admin-stat">Total bets placed: <strong><%= adminStats.totalBets %></strong></p>
+      <h3>Recent Markets</h3>
+      <% adminStats.recentMarkets.forEach(m => { %>
+        <div class="mini-row">
+          <a href="/markets/<%= m._id %>"><%= m.title.substring(0,45) %>...</a>
+          <span class="badge badge-<%= m.status %>"><%= m.status %></span>
+        </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="dash-section">
+      <h2>Quick Actions</h2>
+      <div class="quick-actions">
+        <a href="/markets" class="quick-card">
+          <span>🔮</span><strong>Browse Markets</strong><small>Find markets to bet on</small>
+        </a>
+        <a href="/users/profile" class="quick-card">
+          <span>👤</span><strong>My Profile</strong><small>Stats & history</small>
+        </a>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

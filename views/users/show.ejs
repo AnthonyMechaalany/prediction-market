@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+
+<div class="container page-container">
+  <div class="back-link"><a href="/users">← Users</a></div>
+  <div class="user-profile-header">
+    <div class="user-avatar-lg"><%= user.username.charAt(0).toUpperCase() %></div>
+    <div>
+      <h1><%= user.username %> <span class="role-badge role-<%= user.role %>"><%= user.role %></span></h1>
+      <p><%= user.email %></p>
+      <p><strong><%= user.points.toLocaleString() %> points</strong> · Joined <%= new Date(user.createdAt).toLocaleDateString() %></p>
+    </div>
+    <a href="/users/<%= user._id %>/edit" class="btn btn-ghost btn-sm">Edit</a>
+  </div>
+
+  <h2>Bet History (<%= bets.length %>)</h2>
+  <% if (bets.length === 0) { %>
+    <div class="empty-state">No bets placed.</div>
+  <% } else { %>
+    <table class="table">
+      <thead><tr><th>Market</th><th>Prediction</th><th>Amount</th><th>Status</th><th>Payout</th></tr></thead>
+      <tbody>
+        <% bets.forEach(bet => { %>
+        <tr>
+          <td><a href="/markets/<%= bet.market._id %>"><%= bet.market.title.substring(0,50) %>...</a></td>
+          <td><span class="badge badge-<%= bet.prediction.toLowerCase() %>"><%= bet.prediction %></span></td>
+          <td><%= bet.amount.toLocaleString() %> pts</td>
+          <td><span class="badge badge-<%= bet.status %>"><%= bet.status %></span></td>
+          <td>
+            <% if (bet.status==='won') { %><span class="text-green">+<%= bet.payout.toLocaleString() %></span>
+            <% } else if (bet.status==='lost') { %><span class="text-red">-<%= bet.amount.toLocaleString() %></span>
+            <% } else { %>—<% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

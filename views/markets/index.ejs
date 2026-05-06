@@ -1,0 +1,68 @@
+<%- include('../partials/header') %>
+
+<div class="container page-container">
+  <div class="page-header">
+    <h1>Markets</h1>
+    <% if (locals.currentUser && currentUser.role === 'admin') { %>
+      <a href="/markets/new" class="btn btn-primary">+ New Market</a>
+    <% } %>
+  </div>
+
+  <form class="filter-form" method="GET" action="/markets">
+    <input type="text" name="search" placeholder="Search markets..." value="<%= query.search || '' %>" class="input-search"/>
+    <select name="category" class="select-filter">
+      <option value="">All Categories</option>
+      <% ['politics','sports','technology','entertainment','science','economics','other'].forEach(cat => { %>
+        <option value="<%= cat %>" <%= query.category === cat ? 'selected' : '' %>><%= cat.charAt(0).toUpperCase()+cat.slice(1) %></option>
+      <% }) %>
+    </select>
+    <select name="status" class="select-filter">
+      <option value="">All Status</option>
+      <option value="open" <%= query.status === 'open' ? 'selected' : '' %>>Open</option>
+      <option value="closed" <%= query.status === 'closed' ? 'selected' : '' %>>Closed</option>
+      <option value="resolved" <%= query.status === 'resolved' ? 'selected' : '' %>>Resolved</option>
+    </select>
+    <button type="submit" class="btn btn-ghost btn-sm">Filter</button>
+    <a href="/markets" class="btn btn-ghost btn-sm">Clear</a>
+  </form>
+
+  <% if (markets.length === 0) { %>
+    <div class="empty-state">No markets found.</div>
+  <% } else { %>
+    <div class="markets-grid">
+      <% markets.forEach(market => { %>
+        <a href="/markets/<%= market._id %>" class="market-card">
+          <div class="market-card-top">
+            <span class="market-cat cat-<%= market.category %>"><%= market.category %></span>
+            <span class="badge badge-<%= market.status %>"><%= market.status %></span>
+          </div>
+          <h3><%= market.title %></h3>
+          <p><%= market.description.substring(0, 90) %><%= market.description.length > 90 ? '...' : '' %></p>
+          <% const total = market.totalYesPoints + market.totalNoPoints; %>
+          <% const yesPct = total > 0 ? Math.round(market.totalYesPoints / total * 100) : 50; %>
+          <% if (market.status === 'resolved') { %>
+            <div class="resolved-outcome outcome-<%= market.outcome.toLowerCase() %>">
+              Resolved: <strong><%= market.outcome %></strong>
+            </div>
+          <% } else { %>
+            <div class="market-meta">
+              <div class="odds-bar">
+                <div class="yes-bar" style="width:<%= yesPct %>%"></div>
+              </div>
+              <div class="odds-labels">
+                <span class="yes">YES <%= total > 0 ? yesPct : '--' %>%</span>
+                <span class="no">NO <%= total > 0 ? (100-yesPct) : '--' %>%</span>
+              </div>
+            </div>
+          <% } %>
+          <div class="market-footer">
+            <span>by <%= market.createdBy.username %></span>
+            <span><%= market.participants.length %> bettors</span>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

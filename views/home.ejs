@@ -1,0 +1,61 @@
+<%- include('partials/header') %>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Points-based · No real money</div>
+    <h1>Predict the Future.<br/><span>Win Points.</span></h1>
+    <p>Bet your points on real-world outcomes. Every user starts with <strong>1,000 points</strong>. Winners double their bet.</p>
+    <div class="hero-cta">
+      <% if (locals.currentUser) { %>
+        <a href="/markets" class="btn btn-primary">Browse Markets</a>
+        <a href="/dashboard" class="btn btn-ghost">Dashboard</a>
+      <% } else { %>
+        <a href="/auth/register" class="btn btn-primary">Start Predicting</a>
+        <a href="/markets" class="btn btn-ghost">Browse Markets</a>
+      <% } %>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span>1,000</span>Starting Points</div>
+      <div class="stat"><span>2x</span>Winner Payout</div>
+      <div class="stat"><span>YES/NO</span>Bet Format</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Open Markets</h2>
+    <% if (openMarkets.length === 0) { %>
+      <div class="empty-state">No open markets yet. <% if (locals.currentUser && currentUser.role === 'admin') { %><a href="/markets/new">Create one →</a><% } %></div>
+    <% } else { %>
+      <div class="markets-grid">
+        <% openMarkets.forEach(market => { %>
+          <a href="/markets/<%= market._id %>" class="market-card">
+            <span class="market-cat cat-<%= market.category %>"><%= market.category %></span>
+            <h3><%= market.title %></h3>
+            <p><%= market.description.substring(0, 100) %><%= market.description.length > 100 ? '...' : '' %></p>
+            <div class="market-meta">
+              <div class="odds-bar">
+                <% const total = market.totalYesPoints + market.totalNoPoints; %>
+                <% const yesPct = total > 0 ? Math.round(market.totalYesPoints / total * 100) : 50; %>
+                <div class="yes-bar" style="width:<%= yesPct %>%"></div>
+              </div>
+              <div class="odds-labels">
+                <span class="yes">YES <%= total > 0 ? yesPct : '--' %>%</span>
+                <span class="no">NO <%= total > 0 ? (100-yesPct) : '--' %>%</span>
+              </div>
+            </div>
+            <div class="market-footer">
+              <span>Closes: <%= new Date(market.closesAt).toLocaleDateString() %></span>
+              <span><%= market.participants.length %> bettors</span>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+      <div class="see-all"><a href="/markets" class="btn btn-ghost">See all markets →</a></div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

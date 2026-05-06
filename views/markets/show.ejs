@@ -1,0 +1,141 @@
+<%- include('../partials/header') %>
+
+<div class="container page-container">
+  <div class="back-link"><a href="/markets">← All Markets</a></div>
+
+  <div class="market-detail">
+    <div class="market-detail-header">
+      <div class="market-detail-tags">
+        <span class="market-cat cat-<%= market.category %>"><%= market.category %></span>
+        <span class="badge badge-<%= market.status %>"><%= market.status %></span>
+        <% if (market.outcome) { %>
+          <span class="badge outcome-<%= market.outcome.toLowerCase() %>">Outcome: <%= market.outcome %></span>
+        <% } %>
+      </div>
+      <h1><%= market.title %></h1>
+      <p class="market-desc"><%= market.description %></p>
+      <div class="market-detail-meta">
+        <span>Created by <strong><%= market.createdBy.username %></strong></span>
+        <span>Closes: <strong><%= new Date(market.closesAt).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}) %></strong></span>
+        <span><strong><%= market.participants.length %></strong> participants</span>
+      </div>
+    </div>
+
+    <% const total = market.totalYesPoints + market.totalNoPoints; %>
+    <% const yesPct = total > 0 ? Math.round(market.totalYesPoints / total * 100) : 50; %>
+    <% const noPct = 100 - yesPct; %>
+
+    <div class="odds-section">
+      <div class="odds-display">
+        <div class="odds-side yes-side">
+          <span class="odds-label">YES</span>
+          <span class="odds-pct"><%= total > 0 ? yesPct : '--' %>%</span>
+          <span class="odds-pts"><%= market.totalYesPoints.toLocaleString() %> pts pooled</span>
+        </div>
+        <div class="odds-bar-lg">
+          <div class="yes-bar-lg" style="width:<%= yesPct %>%"></div>
+        </div>
+        <div class="odds-side no-side">
+          <span class="odds-label">NO</span>
+          <span class="odds-pct"><%= total > 0 ? noPct : '--' %>%</span>
+          <span class="odds-pts"><%= market.totalNoPoints.toLocaleString() %> pts pooled</span>
+        </div>
+      </div>
+    </div>
+
+    <% if (locals.currentUser) { %>
+      <% if (userBet) { %>
+        <div class="your-bet">
+          <h3>Your Bet</h3>
+          <div class="bet-summary">
+            <span>Prediction: <strong class="pred-<%= userBet.prediction.toLowerCase() %>"><%= userBet.prediction %></strong></span>
+            <span>Amount: <strong><%= userBet.amount.toLocaleString() %> pts</strong></span>
+            <span>Status: <span class="badge badge-<%= userBet.status %>"><%= userBet.status %></span></span>
+            <% if (userBet.status === 'won') { %>
+              <span class="payout-won">🎉 Payout: +<%= userBet.payout.toLocaleString() %> pts</span>
+            <% } else if (userBet.status === 'lost') { %>
+              <span class="payout-lost">💸 Lost: -<%= userBet.amount.toLocaleString() %> pts</span>
+            <% } %>
+          </div>
+          <% if (market.status === 'open') { %>
+            <form action="/bets/<%= userBet._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Cancel bet and get refund?')">
+              <button class="btn btn-danger btn-sm">Cancel Bet (Refund)</button>
+            </form>
+          <% } %>
+        </div>
+      <% } else if (market.status === 'open') { %>
+        <div class="bet-form-section">
+          <h3>Place Your Bet</h3>
+          <p>You have <strong><%= currentUser.points.toLocaleString() %> points</strong> available.</p>
+          <form action="/bets" method="POST" class="bet-form">
+            <input type="hidden" name="marketId" value="<%= market._id %>"/>
+            <div class="bet-predictions">
+              <label class="pred-btn yes-btn">
+                <input type="radio" name="prediction" value="YES" required/> YES
+              </label>
+              <label class="pred-btn no-btn">
+                <input type="radio" name="prediction" value="NO" required/> NO
+              </label>
+            </div>
+            <div class="bet-amount-row">
+              <input type="number" name="amount" min="10" max="<%= currentUser.points %>" placeholder="Points to bet (min 10)" class="input-bet" required/>
+              <button type="submit" class="btn btn-primary">Place Bet</button>
+            </div>
+          </form>
+        </div>
+      <% } %>
+
+      <% if (currentUser.role === 'admin') { %>
+        <div class="admin-actions-section">
+          <h3>Admin Actions</h3>
+          <div class="admin-btns">
+            <% if (market.status === 'open') { %>
+              <a href="/markets/<%= market._id %>/edit" class="btn btn-ghost btn-sm">Edit Market</a>
+            <% } %>
+            <% if (market.status !== 'resolved') { %>
+              <form action="/markets/<%= market._id %>/resolve" method="POST" class="inline-form">
+                <select name="outcome" class="select-filter" required>
+                  <option value="">Resolve as...</option>
+                  <option value="YES">YES</option>
+                  <option value="NO">NO</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="return confirm('Resolve market? This cannot be undone.')">Resolve Market</button>
+              </form>
+            <% } %>
+            <form action="/markets/<%= market._id %>?_method=DELETE" method="POST" class="inline-form" onsubmit="return confirm('Delete market and refund all bets?')">
+              <button class="btn btn-danger btn-sm">Delete Market</button>
+            </form>
+          </div>
+        </div>
+      <% } %>
+    <% } else { %>
+      <div class="login-prompt">
+        <a href="/auth/login" class="btn btn-primary">Login to Bet</a>
+        <a href="/auth/register" class="btn btn-ghost">Register (get 1000 pts free)</a>
+      </div>
+    <% } %>
+
+    <div class="bets-list-section">
+      <h3>Recent Bets (<%= bets.length %>)</h3>
+      <% if (bets.length === 0) { %>
+        <div class="empty-state">No bets placed yet. Be the first!</div>
+      <% } else { %>
+        <table class="table">
+          <thead><tr><th>User</th><th>Prediction</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <% bets.forEach(bet => { %>
+            <tr>
+              <td><%= bet.user.username %></td>
+              <td><span class="badge badge-<%= bet.prediction.toLowerCase() %>"><%= bet.prediction %></span></td>
+              <td><%= bet.amount.toLocaleString() %> pts</td>
+              <td><span class="badge badge-<%= bet.status %>"><%= bet.status %></span></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+
+<div class="container page-container">
+  <div class="back-link"><a href="/users">← Users</a></div>
+  <h1>Edit User</h1>
+
+  <% if (error) { %>
+    <div class="flash flash-error"><%= error %></div>
+  <% } %>
+
+  <form action="/users/<%= user._id %>?_method=PUT" method="POST" class="form-card">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" name="username" value="<%= user.username %>" required class="input"/>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" value="<%= user.email %>" required class="input"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Role</label>
+        <select name="role" class="input select">
+          <option value="user" <%= user.role==='user' ? 'selected' : '' %>>User</option>
+          <option value="admin" <%= user.role==='admin' ? 'selected' : '' %>>Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Points</label>
+        <input type="number" name="points" value="<%= user.points %>" min="0" required class="input"/>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="/users/<%= user._id %>" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>

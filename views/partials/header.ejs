@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %> | PredictIt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="logo">PREDICT<span>IT</span></a>
+  <div class="nav-links">
+    <a href="/markets">Markets</a>
+    <% if (locals.currentUser) { %>
+      <a href="/bets">My Bets</a>
+      <% if (currentUser.role === 'admin') { %>
+        <a href="/users" class="nav-admin">Users</a>
+        <a href="/bets/all" class="nav-admin">All Bets</a>
+      <% } %>
+      <a href="/users/profile" class="nav-profile">
+        <span class="points-badge">⬡ <%= currentUser.points.toLocaleString() %></span>
+        <%= currentUser.username %>
+      </a>
+      <a href="/auth/logout" class="btn-nav-logout">Logout</a>
+    <% } else { %>
+      <a href="/auth/login" class="btn-nav-login">Login</a>
+      <a href="/auth/register" class="btn-nav-register">Register</a>
+    <% } %>
+  </div>
+</nav>
