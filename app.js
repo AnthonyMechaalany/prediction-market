@@ -4,8 +4,6 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
 const path = require('path');
-const cron = require('node-cron');
-const Market = require('./models/Market');
 
 const authRoutes = require('./routes/authRoutes');
 const marketRoutes = require('./routes/marketRoutes');
@@ -17,25 +15,7 @@ const app = express();
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/prediction-market')
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-
-    // Start cron only after DB is ready
-    cron.schedule('* * * * *', async () => {
-      try {
-        const result = await Market.updateMany(
-          { status: 'open', closesAt: { $lte: new Date() } },
-          { $set: { status: 'closed' } }
-        );
-        if (result.modifiedCount > 0) {
-          console.log(`🕐 Auto-closed ${result.modifiedCount} expired market(s)`);
-        }
-      } catch (err) {
-        console.error('Cron error:', err.message);
-      }
-    });
-
-  })
+  .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // View engine
@@ -48,6 +28,24 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ─── Auto-close expired markets on every request ───────────────
+// This is more reliable than a cron job on free hosting
+app.use(async (req, res, next) => {
+  try {
+    const Market = require('./models/Market');
+    const expired = await Market.updateMany(
+      { status: 'open', closesAt: { $lte: new Date() } },
+      { $set: { status: 'closed' } }
+    );
+    if (expired.modifiedCount > 0) {
+      console.log(`🕐 Auto-closed ${expired.modifiedCount} expired market(s)`);
+    }
+  } catch (err) {
+    console.error('Auto-close error:', err.message);
+  }
+  next();
+});
 
 // Routes
 app.use('/auth', authRoutes);
