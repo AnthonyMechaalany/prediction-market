@@ -44,6 +44,7 @@
     </div>
 
     <% if (locals.currentUser) { %>
+
       <% if (userBet) { %>
         <div class="your-bet">
           <h3>Your Bet</h3>
@@ -63,6 +64,7 @@
             </form>
           <% } %>
         </div>
+
       <% } else if (market.status === 'open') { %>
         <div class="bet-form-section">
           <h3>Place Your Bet</h3>
@@ -83,6 +85,19 @@
             </div>
           </form>
         </div>
+
+      <% } else if (market.status === 'closed') { %>
+        <div class="bet-form-section">
+          <h3>⏰ Market Closed</h3>
+          <p style="color: var(--text2);">This market has closed and is awaiting resolution by an admin. Check back soon to see the outcome.</p>
+        </div>
+
+      <% } else if (market.status === 'resolved') { %>
+        <div class="bet-form-section">
+          <h3>✅ Market Resolved</h3>
+          <p style="color: var(--text2);">This market has been resolved as <strong style="color: <%= market.outcome === 'YES' ? 'var(--green)' : 'var(--red)' %>"><%= market.outcome %></strong>. You did not place a bet on this market.</p>
+        </div>
+
       <% } %>
 
       <% if (currentUser.role === 'admin') { %>
@@ -108,6 +123,7 @@
           </div>
         </div>
       <% } %>
+
     <% } else { %>
       <div class="login-prompt">
         <a href="/auth/login" class="btn btn-primary">Login to Bet</a>
@@ -121,7 +137,14 @@
         <div class="empty-state">No bets placed yet. Be the first!</div>
       <% } else { %>
         <table class="table">
-          <thead><tr><th>User</th><th>Prediction</th><th>Amount</th><th>Status</th></tr></thead>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Prediction</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
           <tbody>
             <% bets.forEach(bet => { %>
             <tr>
@@ -135,6 +158,7 @@
         </table>
       <% } %>
     </div>
+
   </div>
 </div>
 
