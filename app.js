@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
 const path = require('path');
+const cron = require('node-cron');
+const Market = require('./models/Market');
 
 const authRoutes = require('./routes/authRoutes');
 const marketRoutes = require('./routes/marketRoutes');
@@ -45,6 +47,21 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).render('error', { title: 'Error', message: err.message });
+});
+
+// Auto-close markets when closesAt time is reached
+cron.schedule('* * * * *', async () => {
+  try {
+    const result = await Market.updateMany(
+      { status: 'open', closesAt: { $lte: new Date() } },
+      { $set: { status: 'closed' } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`🕐 Auto-closed ${result.modifiedCount} expired market(s)`);
+    }
+  } catch (err) {
+    console.error('Cron error:', err.message);
+  }
 });
 
 const PORT = process.env.PORT || 3000;
