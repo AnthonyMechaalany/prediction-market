@@ -17,7 +17,25 @@ const app = express();
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/prediction-market')
-  .then(() => console.log('✅ Connected to MongoDB'))
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+
+    // Start cron only after DB is ready
+    cron.schedule('* * * * *', async () => {
+      try {
+        const result = await Market.updateMany(
+          { status: 'open', closesAt: { $lte: new Date() } },
+          { $set: { status: 'closed' } }
+        );
+        if (result.modifiedCount > 0) {
+          console.log(`🕐 Auto-closed ${result.modifiedCount} expired market(s)`);
+        }
+      } catch (err) {
+        console.error('Cron error:', err.message);
+      }
+    });
+
+  })
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // View engine
@@ -47,21 +65,6 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).render('error', { title: 'Error', message: err.message });
-});
-
-// Auto-close markets when closesAt time is reached
-cron.schedule('* * * * *', async () => {
-  try {
-    const result = await Market.updateMany(
-      { status: 'open', closesAt: { $lte: new Date() } },
-      { $set: { status: 'closed' } }
-    );
-    if (result.modifiedCount > 0) {
-      console.log(`🕐 Auto-closed ${result.modifiedCount} expired market(s)`);
-    }
-  } catch (err) {
-    console.error('Cron error:', err.message);
-  }
 });
 
 const PORT = process.env.PORT || 3000;
