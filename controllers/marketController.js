@@ -4,6 +4,13 @@ const User = require('../models/User');
 
 exports.index = async (req, res) => {
   try {
+    // 1. Automatically transition 'open' markets to 'closed' if their time has passed
+    await Market.updateMany(
+      { status: 'open', closesAt: { $lt: new Date() } },
+      { $set: { status: 'closed' } }
+    );
+
+    // 2. Fetch markets with filters
     const { category, status, search } = req.query;
     const filter = {};
     if (category) filter.category = category;
@@ -24,6 +31,12 @@ exports.show = async (req, res) => {
   try {
     const market = await Market.findById(req.params.id).populate('createdBy', 'username');
     if (!market) return res.status(404).render('404', { title: '404' });
+
+    // Ensure we trigger the auto-close check for this specific market too
+    if (market.status === 'open' && new Date() > market.closesAt) {
+      market.status = 'closed';
+      await market.save();
+    }
 
     const bets = await Bet.find({ market: market._id }).populate('user', 'username');
     let userBet = null;

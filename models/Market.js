@@ -53,6 +53,18 @@ marketSchema.virtual('bets', {
   foreignField: 'market'
 });
 
+// Virtual to check if market should be considered closed based on date
+marketSchema.virtual('isExpired').get(function() {
+  return new Date() > this.closesAt;
+});
+
+// Update the dynamic status logic
+marketSchema.virtual('effectiveStatus').get(function() {
+  if (this.status === 'resolved') return 'resolved';
+  if (this.status === 'closed' || this.isExpired) return 'closed';
+  return 'open';
+});
+
 marketSchema.set('toJSON', { virtuals: true });
 marketSchema.set('toObject', { virtuals: true });
 
